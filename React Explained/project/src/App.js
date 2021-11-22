@@ -1,21 +1,34 @@
 import React, {useState} from 'react';
+import {BrowserRouter as Router,
+  Routes,
+  Route,
+} from "react-router-dom";
+import './firebase.js';
+import {getAuth, signInWithEmailAndPassword} from "firebase/auth"; 
+import {useStorageState } from "react-storage-hooks";
+
 import Header from './components/Header';
 import Posts from './components/Posts';
 import Post from './components/Post';
 import NotFound from './components/NotFound';
 import PostForm from './components/PostForm';
-
-import {BrowserRouter as Router,
-  Routes,
-  Route,
-} from "react-router-dom";
+import Login from './components/Login';
 
 import './App.css';
 import Message from './components/Message';
 
 const App = (props) => {
-  const [posts, setPosts] = useState([]);
+  //const [posts, setPosts] = useState([]);
+
+  const [posts, setPosts] = useStorageState(localStorage, `state-posts`, []);
   const [message, setMessage] = useState(null);
+
+  const onLogin = (email, password) => {
+    const auth = getAuth();
+    signInWithEmailAndPassword(auth, email, password)
+      .then(user => console.log("Logged in!"))
+      .catch((error) => console.error(error));
+  };
 
   const setFlashMessage = (message) => {
     setMessage(message);
@@ -23,7 +36,6 @@ const App = (props) => {
       setMessage(null);
       }, 1600);
   };
-  
 
   const addNewPost = (post) => {
     post.id = posts.length + 1;
@@ -79,6 +91,10 @@ const App = (props) => {
             path="/edit/:postSlug"
             element= {<PostForm newPost={false} getPost={getPost} updatePost={updatePost}/>} 
           />
+          <Route
+            path="/login"
+            element = {<Login onLogin={onLogin} />}
+            />
           <Route
             path="*"
             element={<NotFound />} 
