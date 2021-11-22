@@ -11,6 +11,9 @@ const Posts = ({ posts }) => (
             {posts.map(post => (
                 <li key={post.id}>
                     <h2><Link to={`/post/${post.slug}`}>{post.title}</Link></h2>
+                    <p>
+                        <Link to={`/edit/${post.slug}`}>Edit</Link>
+                    </p>
                 </li>
             ))}
         </ul>
