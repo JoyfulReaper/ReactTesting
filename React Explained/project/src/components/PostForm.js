@@ -53,7 +53,6 @@ const PostForm = ({addNewPost, getPost, updatePost, newPost}) => {
     }
     return(
         <form className="container" onSubmit={handlePostForm}>
-            <h1>{post.id}{postdb.id}</h1>
             <h1>Add a New Post</h1>
             <p>
                 <label htmlFor="form-title">Title:</label>

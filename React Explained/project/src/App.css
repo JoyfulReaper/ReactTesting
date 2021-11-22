@@ -119,8 +119,10 @@
   }
 
 .App button.linkLike {
+  background: inherit;
   border: none;
   font-size: inherit;
+  font: inherit;
   color: #26738D;
   text-decoration: underline;  
 }

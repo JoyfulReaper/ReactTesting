@@ -41,6 +41,15 @@ const App = (props) => {
     setFlashMessage("updated"); 
   }
 
+  const deletePost = (post) => {
+    if(window.confirm("Delete this post?"))
+    {
+      const updatedPosts = posts.filter((p) => p.id !== post.id);
+      setPosts(updatedPosts);
+      setFlashMessage('deleted');
+    }
+  }
+
   const getNewSlugFromTitle = (title) => (
     encodeURIComponent(
       title.toLowerCase().split(" ").join("-"))
@@ -56,7 +65,7 @@ const App = (props) => {
         <Header />
         {message && <Message type={message} />}
         <Routes>
-          <Route exact path="/" element={<Posts posts={posts} />} />
+          <Route exact path="/" element={<Posts deletePost={deletePost} posts={posts} />} />
           <Route 
             path="/post/:postSlug" 
             element = {<Post posts={posts} />}
