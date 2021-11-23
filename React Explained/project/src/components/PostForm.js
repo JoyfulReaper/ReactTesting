@@ -4,7 +4,7 @@ import Quill from "react-quill";
 
 import 'react-quill/dist/quill.snow.css';
 
-const PostForm = ({addNewPost, getPost, updatePost, newPost}) => {
+const PostForm = ({addNewPost, getPost, updatePost, newPost, isLoggedIn}) => {
     const [saved, setSaved] = useState(false);
     const [post, setPost] = useState({key: null, title: "", content: "", slug: ""})
 
@@ -36,6 +36,12 @@ const PostForm = ({addNewPost, getPost, updatePost, newPost}) => {
 
     const handlePostForm = (event) => {
         event.preventDefault();
+
+        if(!isLoggedIn()){
+            alert("You are not logged in!");
+            return;
+        }
+
         if(post.title) {
             if(updatePost) {
                 updatePost(post)

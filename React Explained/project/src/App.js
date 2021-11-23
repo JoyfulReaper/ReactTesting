@@ -1,12 +1,12 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {BrowserRouter as Router,
   Routes,
   Route,
   Navigate
 } from "react-router-dom";
 import './firebase.js';
-import {getAuth, signInWithEmailAndPassword, signOut} from "firebase/auth"; 
-import { getDatabase, ref, set } from "firebase/database";
+import {getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged} from "firebase/auth"; 
+import { getDatabase, ref, set, onValue } from "firebase/database";
 import {useStorageState } from "react-storage-hooks";
 
 import UserContext from "./context/UserContext";
@@ -22,16 +22,14 @@ import './App.css';
 import Message from './components/Message';
 
 const App = (props) => {
-  //const [posts, setPosts] = useState([]);
-
   const [posts, setPosts] = useStorageState(localStorage, `state-posts`, []);
   const [user, setUser] = useStorageState(localStorage, `state-user`, {});
   const [message, setMessage] = useState(null);
 
   const database = getDatabase();
+  const auth = getAuth();
 
   const onLogin = (email, password) => {
-    const auth = getAuth();
     signInWithEmailAndPassword(auth, email, password)
       .then((response) => {
         setUser({
@@ -43,11 +41,17 @@ const App = (props) => {
   };
 
   const onLogout = () => {
-    const auth = getAuth();
     signOut(auth).then(() => {
       setUser({isAuthenticated: false});
     }).catch((error) => console.error(error));
   };
+
+  const isLoggedIn = () => {
+    const user = auth.currentUser;
+    console.log("user", user);
+    
+    return (user != null);
+  }
 
   const setFlashMessage = (message) => {
     setMessage(message);
@@ -63,11 +67,6 @@ const App = (props) => {
       key: null, title: post.title, content: post.content, slug: post.slug
     })
     setFlashMessage('saved');
-    /*
-    post.id = posts.length + 1;
-    post.slug = getNewSlugFromTitle(post.title);
-    setPosts([...posts, post]);
-    setFlashMessage('saved'); */
   }
 
   const updatePost = (post) => {
@@ -80,6 +79,11 @@ const App = (props) => {
   }
 
   const deletePost = (post) => {
+    if(!isLoggedIn)
+    {
+      alert("You are not logged in!");
+      return;
+    }
     if(window.confirm("Delete this post?"))
     {
       const updatedPosts = posts.filter((p) => p.id !== post.id);
@@ -97,6 +101,23 @@ const App = (props) => {
     posts.find((post) => post.slug === slug)
   );
 
+    useEffect(() => {
+      const postsRef = ref(database, 'posts');
+      onValue(postsRef, (snapshot) => {
+        const posts = snapshot.val();
+        const newStatePosts = [];
+        for(let post in posts)
+        {
+          newStatePosts.push({
+            slug: posts[post].slug,
+            title: posts[post].title, 
+            content: posts[post].content
+          });
+        }
+        setPosts(newStatePosts);
+      });
+    }, [setPosts])
+
   return (
     <Router>
       <UserContext.Provider value={{user, onLogin, onLogout}}>
@@ -104,7 +125,7 @@ const App = (props) => {
           <Header />
           {message && <Message type={message} />}
           <Routes>
-            <Route exact path="/" element={<Posts deletePost={deletePost} posts={posts} />} />
+            <Route exact path="/" element={<Posts deletePost={deletePost} posts={posts} isLoggedIn={isLoggedIn} />} />
             <Route 
               path="/post/:postSlug" 
               element = {<Post posts={posts} />}
@@ -112,11 +133,11 @@ const App = (props) => {
             <Route 
               exact
               path="/new"
-              element = { user.isAuthenticated ? <PostForm newPost={true} addNewPost={addNewPost}/> : <Navigate to = "/login" />}
+              element = { user.isAuthenticated ? <PostForm newPost={true} isLoggedIn={isLoggedIn} addNewPost={addNewPost}/> : <Navigate to = "/login" />}
             />
             <Route
               path="/edit/:postSlug"
-              element= { user.isAuthenticated ? <PostForm newPost={false} getPost={getPost} updatePost={updatePost}/> : <Navigate to = "/" />} 
+              element= { user.isAuthenticated ? <PostForm newPost={false} isLoggedIn={isLoggedIn} getPost={getPost} updatePost={updatePost}/> : <Navigate to = "/" />} 
             />
             <Route
               path="/login"
