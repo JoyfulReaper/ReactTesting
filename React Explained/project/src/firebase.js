@@ -5,6 +5,7 @@ import "firebase/database";
 const config = {
   apiKey: "AIzaSyBlyhoaCmjUsA16Qkr-dB8Pt1TIAMphyG8",
   authDomain: "reactexplained-1cc42.firebaseapp.com",
+  databaseURL: "https://reactexplained-1cc42-default-rtdb.firebaseio.com/",
   projectId: "reactexplained-1cc42",
   storageBucket: "reactexplained-1cc42.appspot.com",
   messagingSenderId: "366844375464",

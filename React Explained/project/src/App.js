@@ -2,10 +2,14 @@ import React, {useState} from 'react';
 import {BrowserRouter as Router,
   Routes,
   Route,
+  Navigate
 } from "react-router-dom";
 import './firebase.js';
-import {getAuth, signInWithEmailAndPassword} from "firebase/auth"; 
+import {getAuth, signInWithEmailAndPassword, signOut} from "firebase/auth"; 
+import { getDatabase, ref, set } from "firebase/database";
 import {useStorageState } from "react-storage-hooks";
+
+import UserContext from "./context/UserContext";
 
 import Header from './components/Header';
 import Posts from './components/Posts';
@@ -21,13 +25,28 @@ const App = (props) => {
   //const [posts, setPosts] = useState([]);
 
   const [posts, setPosts] = useStorageState(localStorage, `state-posts`, []);
+  const [user, setUser] = useStorageState(localStorage, `state-user`, {});
   const [message, setMessage] = useState(null);
+
+  const database = getDatabase();
 
   const onLogin = (email, password) => {
     const auth = getAuth();
     signInWithEmailAndPassword(auth, email, password)
-      .then(user => console.log("Logged in!"))
+      .then((response) => {
+        setUser({
+          email: response.user["email"],
+          isAuthenticated: true,
+        })
+      })
       .catch((error) => console.error(error));
+  };
+
+  const onLogout = () => {
+    const auth = getAuth();
+    signOut(auth).then(() => {
+      setUser({isAuthenticated: false});
+    }).catch((error) => console.error(error));
   };
 
   const setFlashMessage = (message) => {
@@ -38,10 +57,17 @@ const App = (props) => {
   };
 
   const addNewPost = (post) => {
+    post.slug = getNewSlugFromTitle(post.title);
+    delete post.key;
+    set(ref(database, 'posts/' + post.slug), {
+      key: null, title: post.title, content: post.content, slug: post.slug
+    })
+    setFlashMessage('saved');
+    /*
     post.id = posts.length + 1;
     post.slug = getNewSlugFromTitle(post.title);
     setPosts([...posts, post]);
-    setFlashMessage('saved');
+    setFlashMessage('saved'); */
   }
 
   const updatePost = (post) => {
@@ -73,34 +99,36 @@ const App = (props) => {
 
   return (
     <Router>
-      <div className="App">
-        <Header />
-        {message && <Message type={message} />}
-        <Routes>
-          <Route exact path="/" element={<Posts deletePost={deletePost} posts={posts} />} />
-          <Route 
-            path="/post/:postSlug" 
-            element = {<Post posts={posts} />}
-          />
-          <Route 
-            exact
-            path="/new"
-            element = {<PostForm newPost={true} addNewPost={addNewPost}/>}
-          />
-          <Route
-            path="/edit/:postSlug"
-            element= {<PostForm newPost={false} getPost={getPost} updatePost={updatePost}/>} 
-          />
-          <Route
-            path="/login"
-            element = {<Login onLogin={onLogin} />}
+      <UserContext.Provider value={{user, onLogin, onLogout}}>
+        <div className="App">
+          <Header />
+          {message && <Message type={message} />}
+          <Routes>
+            <Route exact path="/" element={<Posts deletePost={deletePost} posts={posts} />} />
+            <Route 
+              path="/post/:postSlug" 
+              element = {<Post posts={posts} />}
             />
-          <Route
-            path="*"
-            element={<NotFound />} 
-          />
-        </Routes>
-      </div>
+            <Route 
+              exact
+              path="/new"
+              element = { user.isAuthenticated ? <PostForm newPost={true} addNewPost={addNewPost}/> : <Navigate to = "/login" />}
+            />
+            <Route
+              path="/edit/:postSlug"
+              element= { user.isAuthenticated ? <PostForm newPost={false} getPost={getPost} updatePost={updatePost}/> : <Navigate to = "/" />} 
+            />
+            <Route
+              path="/login"
+              element = { !user.isAuthenticated ? <Login /> : <Navigate to = "/" />}
+              />
+            <Route
+              path="*"
+              element={<NotFound />} 
+            />
+          </Routes>
+        </div>
+      </UserContext.Provider>
     </Router>
   );
 };

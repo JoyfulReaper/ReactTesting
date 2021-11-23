@@ -1,20 +1,41 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import { Link } from 'react-router-dom'
 
-const Header = () => (
+import UserContext from "../context/UserContext";
+
+const Header = () => {
+    const {user, onLogout} = useContext(UserContext);
+
+    return (
     <header className="App-header">
         <ul className="container">
             <li>
                 <Link to='/'>My Stite</Link>
             </li>
-            <li>
-                <Link to="/new">New Post</Link>
-            </li>
-            <li>
-                <Link to="/login">Login</Link>
-            </li>
+            {user.isAuthenticated ? ( 
+                <>
+                    <li>
+                        <Link to="/new">New Post</Link>
+                    </li>
+                    <li>
+                        <button
+                            className="linkLike"
+                            onClick={(event) => {
+                                event.preventDefault();
+                                onLogout();
+                            }}
+                        >
+                            Log out
+                        </button>
+                    </li>
+                </>
+            ) : (
+                <li>
+                    <Link to="/login">Login</Link>
+                </li>
+            )}
         </ul>
-    </header>
-);
+    </header>);
+};
 
 export default Header;

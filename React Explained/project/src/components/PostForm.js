@@ -6,14 +6,14 @@ import 'react-quill/dist/quill.snow.css';
 
 const PostForm = ({addNewPost, getPost, updatePost, newPost}) => {
     const [saved, setSaved] = useState(false);
-    const [post, setPost] = useState({id: 0, title: "", content: "", slug: ""})
+    const [post, setPost] = useState({key: null, title: "", content: "", slug: ""})
 
     const params = useParams();
 
     let postdb = post;
-    if(getPost && post.id === 0) {
+    if(getPost && post.key == null) {
         postdb = getPost(params.postSlug);
-        if(postdb.id !== 0) {
+        if(postdb.key != null) {
             setPost(postdb);
         }
     }
@@ -27,8 +27,8 @@ const PostForm = ({addNewPost, getPost, updatePost, newPost}) => {
     const quillRef = useRef();
     useEffect(() => {
         if(prevPost && quillRef.current) {
-            if(newPost && post.id !== 0) {
-                setPost({id: 0, title: "", content: "", slug: ""});
+            if(newPost && post.key !== null) {
+                setPost({key: null, title: "", content: "", slug: ""});
                 quillRef.current.getEditor().setContents('');
             }
         }
