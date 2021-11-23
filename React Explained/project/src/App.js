@@ -6,7 +6,7 @@ import {BrowserRouter as Router,
 } from "react-router-dom";
 import './firebase.js';
 import {getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged} from "firebase/auth"; 
-import { getDatabase, ref, set, onValue, push, child } from "firebase/database";
+import { getDatabase, ref, set, onValue, push, child, remove } from "firebase/database";
 import {useStorageState } from "react-storage-hooks";
 
 import UserContext from "./context/UserContext";
@@ -83,15 +83,14 @@ const App = (props) => {
   }
 
   const deletePost = (post) => {
-    if(!isLoggedIn)
+    if(!isLoggedIn())
     {
       alert("You are not logged in!");
       return;
     }
     if(window.confirm("Delete this post?"))
     {
-      const updatedPosts = posts.filter((p) => p.id !== post.id);
-      setPosts(updatedPosts);
+      remove(ref(database, "posts/" + post.key));
       setFlashMessage('deleted');
     }
   }
