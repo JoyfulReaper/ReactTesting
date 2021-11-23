@@ -6,7 +6,7 @@ import {BrowserRouter as Router,
 } from "react-router-dom";
 import './firebase.js';
 import {getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged} from "firebase/auth"; 
-import { getDatabase, ref, set, onValue } from "firebase/database";
+import { getDatabase, ref, set, onValue, push, child } from "firebase/database";
 import {useStorageState } from "react-storage-hooks";
 
 import UserContext from "./context/UserContext";
@@ -63,18 +63,22 @@ const App = (props) => {
   const addNewPost = (post) => {
     post.slug = getNewSlugFromTitle(post.title);
     delete post.key;
-    set(ref(database, 'posts/' + post.slug), {
-      key: null, title: post.title, content: post.content, slug: post.slug
+    
+    const key = push(child(ref(database), 'posts')).key;
+
+    set(ref(database, 'posts/' + key), {
+      key: key, title: post.title, content: post.content, slug: post.slug
     })
     setFlashMessage('saved');
   }
 
   const updatePost = (post) => {
     post.slug = getNewSlugFromTitle(post.title);
-    const index = posts.findIndex((p) => p.id === post.id);
-    const oldPosts = posts.slice(0, index).concat(posts.slice(index + 1));
-    const updatedPosts = [...oldPosts, post].sort((a,b) => a.id - b.id);
-    setPosts(updatedPosts);
+
+    set(ref(database, 'posts/' + post.key), {
+      key: post.key, title: post.title, content: post.content, slug: post.slug
+    })
+
     setFlashMessage("updated"); 
   }
 
@@ -97,9 +101,10 @@ const App = (props) => {
       title.toLowerCase().split(" ").join("-"))
   );
 
-  const getPost = (slug) => (
-    posts.find((post) => post.slug === slug)
-  );
+  const getPost = (slug) => {
+    console.log(posts);
+    return posts.find((post) => post.slug === slug)
+  };
 
     useEffect(() => {
       const postsRef = ref(database, 'posts');
@@ -109,6 +114,7 @@ const App = (props) => {
         for(let post in posts)
         {
           newStatePosts.push({
+            key: posts[post].key,
             slug: posts[post].slug,
             title: posts[post].title, 
             content: posts[post].content
