@@ -8,7 +8,7 @@ return (
             <strong>Location:</strong> {data.location.name}, {data.location.region}, {data.location.country}<br />
             <strong>Last Updated:</strong> {data.current.last_updated} <br />
             <strong>Tempature:</strong> {data.current.temp_f} F <br />
-            <strong>Feels Like: </strong>{data.current.feels_likef} F <br />
+            <strong>Feels Like: </strong>{data.current.feelslike_f} F <br />
             <strong>Wind:</strong> {data.current.wind_mph} MPH <br />
             <strong>Wind Gusts:</strong> {data.current.gust_mph} MPH <br />
             <strong>Wind Direction:</strong> {data.current.wind_dir} <br />

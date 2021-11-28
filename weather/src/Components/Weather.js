@@ -10,6 +10,18 @@ const Weather = () => {
     const [location, setLocation] = useState('');
 
     const getWeather = () => {
+        if(apiKey === '')
+        {
+            alert("API key must be set!");
+            return;
+        }
+
+        if(location === '')
+        {
+            alert("Location must be set!");
+            return;
+        }
+
         const params = new URLSearchParams({
             q: location,
             key: apiKey
