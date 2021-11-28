@@ -26,7 +26,7 @@ const NavMenu = () => {
               navbar
             >
               <NavItem>
-                <NavLink href="https://github.com/JoyfulReaper/">
+                <NavLink href="https://github.com/JoyfulReaper/ReactTesting/tree/master/weather">
                   GitHub
                 </NavLink>
               </NavItem>
